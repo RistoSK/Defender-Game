@@ -17,10 +17,17 @@ public class Enemy : MonoBehaviour
     [SerializeField] float maxShotDelay = 3f;
 
     [Header("Projectile")]
+    [SerializeField] Transform projectileSpawnPointLeft;
+    [SerializeField] Transform projectileSpawnPointCenter;
+    [SerializeField] Transform projectileSpawnPointRight;
+    [SerializeField] Transform projectileSpawnPointLeftWing;
+    [SerializeField] Transform projectileSpawnPointRightWing;
     [SerializeField] GameObject projectilePrefab;
     [SerializeField] float projectileSpeed = 15f;
     [SerializeField] AudioClip projectileAudio;
     [SerializeField] [Range(0, 1)] float projectileVolume = 1f;
+    Quaternion projectileRightRotation;
+    Quaternion projectileLeftRotation;
 
     [Header("OnDeath")]
     [SerializeField] GameObject explosionPrefab;
@@ -30,6 +37,9 @@ public class Enemy : MonoBehaviour
     void Start()
     {
         shotDelay = Random.Range(minShotDelay, maxShotDelay);
+        
+        projectileRightRotation = Quaternion.Euler(new Vector3(0, 0, 20));
+        projectileLeftRotation = Quaternion.Euler(new Vector3(0, 0, -20));
     }
 
     void Update()
@@ -50,10 +60,29 @@ public class Enemy : MonoBehaviour
     {
         shotDelay = Random.Range(minShotDelay, maxShotDelay);
 
-        GameObject projectile = Instantiate(projectilePrefab, transform.position, Quaternion.identity) as GameObject;
-        AudioSource.PlayClipAtPoint(projectileAudio, Camera.main.transform.position, projectileVolume);
+        if (projectileSpawnPointLeft != null)
+        {
+            FireProjectile(projectilePrefab, projectileAudio, projectileVolume, projectileSpawnPointLeft.position, projectileLeftRotation, projectileSpeed);
+        }
+        if (projectileSpawnPointCenter != null)
+        {
+            FireProjectile(projectilePrefab, projectileAudio, projectileVolume, projectileSpawnPointCenter.position, Quaternion.identity, projectileSpeed);
+        }
+        if (projectileSpawnPointRight != null)
+        {
+            FireProjectile(projectilePrefab, projectileAudio, projectileVolume, projectileSpawnPointRight.position, projectileRightRotation, projectileSpeed);
+        }
+        if(projectileSpawnPointLeftWing != null && projectileSpawnPointRightWing != null)
+        {
+            StartCoroutine(FireSecondary());
+        }
+    }
 
-        projectile.GetComponent<Rigidbody2D>().velocity = new Vector2(0, -projectileSpeed);
+    IEnumerator FireSecondary()
+    {
+        yield return new WaitForSeconds(1f);
+        FireProjectile(projectilePrefab, projectileAudio, projectileVolume, projectileSpawnPointLeftWing.position, Quaternion.identity, projectileSpeed);
+        FireProjectile(projectilePrefab, projectileAudio, projectileVolume, projectileSpawnPointRightWing.position, Quaternion.identity, projectileSpeed);
     }
 
     private void OnTriggerEnter2D(Collider2D collider)
@@ -85,5 +114,12 @@ public class Enemy : MonoBehaviour
         GameObject clip = Instantiate(prefab, transform.position, Quaternion.identity) as GameObject;
         AudioSource.PlayClipAtPoint(audio, Camera.main.transform.position, Volume);
         Destroy(clip, DestroyTime);
+    }
+
+    private void FireProjectile(GameObject prefab, AudioClip audio, float Volume, Vector3 spawnPoint, Quaternion projectileRotation, float speed)
+    {
+        GameObject projectile = Instantiate(prefab, spawnPoint, projectileRotation) as GameObject;
+        AudioSource.PlayClipAtPoint(audio, Camera.main.transform.position, Volume);
+        projectile.GetComponent<Rigidbody2D>().velocity = new Vector2(projectileRotation.z * 5, -speed);
     }
 }

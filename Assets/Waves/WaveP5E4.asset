@@ -9,10 +9,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ce84eb30d8690bb4297494b505cbcffc, type: 3}
-  m_Name: Wave P7E01
+  m_Name: WaveP5E4
   m_EditorClassIdentifier: 
-  enemy: {fileID: 1232743260641508, guid: 4c769d97b49f0c241be6a8c8aa738a74, type: 2}
-  path: {fileID: 1620340713488798, guid: f5b66f22eaa43564bb8a6380f387fa94, type: 2}
-  currentEnemyAmount: 5
-  currentEnemySpeed: 2
-  spawnDelay: 0.3
+  enemy: {fileID: 1726077180643496, guid: 90a889fd8ba44f347b99877fe76dc1da, type: 2}
+  path: {fileID: 1414143749078740, guid: 46f5e08e073307e45bfdd137a6a2af7b, type: 2}
+  currentEnemyAmount: 8
+  currentEnemySpeed: 2.6000001
+  spawnDelay: 0.7
+  enemyAmountIncremention: 1
+  enemySpeedIncremention: 0.2

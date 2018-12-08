@@ -4,46 +4,33 @@ using UnityEngine;
 
 public class InfiniteBackground : MonoBehaviour
 {
-    [SerializeField] float scrollSpeed = 0.5f;
+    [SerializeField] float baseScrollSpeed = 0.5f;
+    [SerializeField] float minScrollSpeed = 0.3f;
+    [SerializeField] float maxScrollSpeed = 0.7f;
+
+    float scrollSpeed;
 
     Material material;
+    Transform player;
     Vector2 offset;
-    float playersPreviousPositionY = 0f;
-
+   
     // Use this for initialization
     void Start ()
     {
+        scrollSpeed = baseScrollSpeed;
         material = GetComponent<Renderer>().material;
+        player = GameObject.Find("Player").GetComponent<Transform>();
     }
 
     // Update is called once per frame
     void Update ()
     {
-        Transform player = transform.Find("Player");
-
-        if(player != null)
-        { 
-            adjustSpeed(player);      
-            playersPreviousPositionY = player.position.y;
+        if (player != null)
+        {
+            scrollSpeed = Mathf.Clamp(player.GetComponent<Rigidbody2D>().velocity.y + baseScrollSpeed, minScrollSpeed, maxScrollSpeed);
         }
 
         offset = new Vector2(0f, scrollSpeed);
         material.mainTextureOffset +=  offset * Time.deltaTime;
 	}
-
-    public void adjustSpeed(Transform player)
-    {
-        if (player.position.y > playersPreviousPositionY)
-        {
-            scrollSpeed = 0.7f;
-        }
-        else if (player.position.y < playersPreviousPositionY)
-        {
-            scrollSpeed = 0.3f;
-        }
-        else
-        {
-            scrollSpeed = 0.5f;
-        }
-    }
 }

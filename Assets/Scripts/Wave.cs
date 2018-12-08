@@ -10,6 +10,8 @@ public class Wave : ScriptableObject
     [SerializeField] int currentEnemyAmount = 5;
     [SerializeField] float currentEnemySpeed = 2f;
     [SerializeField] float spawnDelay = 0.7f;
+    [SerializeField] int enemyAmountIncremention = 1;
+    [SerializeField] float enemySpeedIncremention = 0.2f;
 
     int originalEnemyAmount = 5;
     float originalEnemySpeed = 2f;
@@ -41,9 +43,9 @@ public class Wave : ScriptableObject
         return currentEnemyAmount;
     }
 
-    public void SetEnemyAmount(int enemyAmount)
+    public void IncrementEnemyAmount()
     {
-        this.currentEnemyAmount += enemyAmount;
+        this.currentEnemyAmount += enemyAmountIncremention;
     }
 
     public float GetEnemySpeed()
@@ -51,9 +53,9 @@ public class Wave : ScriptableObject
         return currentEnemySpeed;
     }
 
-    public void SetEnemySpeed(float enemySpeed)
+    public void IncrementEnemySpeed()
     {
-        this.currentEnemySpeed += enemySpeed;
+        this.currentEnemySpeed += enemySpeedIncremention;
     }
 
     public float GetSpawnDelay()

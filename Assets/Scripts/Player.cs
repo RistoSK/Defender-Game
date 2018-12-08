@@ -24,11 +24,22 @@ public class Player : MonoBehaviour
     [SerializeField] AudioClip gotHitAudio;
     [SerializeField] [Range(0, 1)] float gotHitVolume = 1f;
 
+    [Header("PowerUps")]
+    [SerializeField] Transform shootingPowerUpSpawnPointLeft;
+    [SerializeField] Transform shootingPowerUpSpawnPointRight;
+    [SerializeField] AudioClip invisiblePowerUpSound;
+    [SerializeField] AudioClip HealthPowerUpSound;
+    [SerializeField] AudioClip shootingPowerUpSound;
+
+    InfiniteBackground background;
+
+    bool shootingPowerUp;
+    bool invinsiblePowerUp;
 
     Coroutine firingCoroutine;
-
+  
     float currentHealth;
-        
+    
     float minX;
     float maxX;
     float minY;
@@ -37,6 +48,9 @@ public class Player : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        background = FindObjectOfType<InfiniteBackground>();
+        shootingPowerUp = false;
+        invinsiblePowerUp = false;
         currentHealth = maxHealth;
         CreateBoundaries();
     }
@@ -45,6 +59,7 @@ public class Player : MonoBehaviour
     void Update()
     {
         Move();
+        SetBoundaries();
         Fire();
     }
 
@@ -62,10 +77,15 @@ public class Player : MonoBehaviour
     private void Move()
     {
         float deltaX = Input.GetAxis("Horizontal") * Time.deltaTime * speed;
-        float newPositionX = Mathf.Clamp(transform.position.x + deltaX, minX, maxX);
-
         float deltaY = Input.GetAxis("Vertical") * Time.deltaTime * speed;
-        float newPositionY = Mathf.Clamp(transform.position.y + deltaY, minY, maxY); 
+
+        GetComponent<Rigidbody2D>().velocity = new Vector2(deltaX, deltaY);
+    }
+
+    private void SetBoundaries()
+    {
+        float newPositionX = Mathf.Clamp(transform.position.x, minX, maxX);
+        float newPositionY = Mathf.Clamp(transform.position.y, minY, maxY);
 
         transform.position = new Vector2(newPositionX, newPositionY);
     }
@@ -87,6 +107,17 @@ public class Player : MonoBehaviour
     {
         while (true)
         {
+            if(shootingPowerUp)
+            {
+                GameObject projectileLeft = Instantiate(projectilePrefab, shootingPowerUpSpawnPointLeft.position, Quaternion.identity) as GameObject;
+                AudioSource.PlayClipAtPoint(projectileAudio, Camera.main.transform.position, projectileVolume);
+                projectileLeft.GetComponent<Rigidbody2D>().velocity = new Vector2(0, projectileSpeed);
+
+                GameObject projectileRight = Instantiate(projectilePrefab, shootingPowerUpSpawnPointRight.position, Quaternion.identity) as GameObject;
+                AudioSource.PlayClipAtPoint(projectileAudio, Camera.main.transform.position, projectileVolume);
+                projectileRight.GetComponent<Rigidbody2D>().velocity = new Vector2(0, projectileSpeed);
+            }
+
             GameObject projectile = Instantiate(projectilePrefab, transform.position, Quaternion.identity) as GameObject;
             AudioSource.PlayClipAtPoint(projectileAudio, Camera.main.transform.position, projectileVolume);
             projectile.GetComponent<Rigidbody2D>().velocity = new Vector2(0, projectileSpeed);
@@ -105,15 +136,62 @@ public class Player : MonoBehaviour
         return maxHealth;
     }
 
+    public void SetShootingPowerUp()
+    {
+        background.transform.Find("ShootingPowerUpIcon").GetComponent<SpriteRenderer>().enabled = true;
+        AudioSource.PlayClipAtPoint(shootingPowerUpSound, Camera.main.transform.position);
+        shootingPowerUp = true;
+    }
+
+    public void SetInvinsiblePowerUp()
+    {
+        invinsiblePowerUp = true;
+        background.transform.Find("InvinisblePowerUpIcon").GetComponent<SpriteRenderer>().enabled = true;
+        gameObject.GetComponent<Animator>().enabled = true;
+        AudioSource.PlayClipAtPoint(invisiblePowerUpSound, Camera.main.transform.position);
+        StartCoroutine(StartInvinsiblePowerUpCooldown());
+    }
+
+    public IEnumerator StartInvinsiblePowerUpCooldown()
+    {  
+        yield return new WaitForSeconds(10f);
+      
+        background.transform.Find("InvinisblePowerUpIcon").GetComponent<SpriteRenderer>().enabled = false;
+        // Reset so that our player keeps the original mesh
+        gameObject.GetComponent<Animator>().Play("InvisiblePowerUpPlayer", 0, 0f);
+        gameObject.GetComponent<Animator>().enabled = false;
+
+        invinsiblePowerUp = false;
+    }
+
+    public void SetHealthPowerUp(float healthToRestore)
+    {
+        AudioSource.PlayClipAtPoint(HealthPowerUpSound, Camera.main.transform.position);
+        if ((healthToRestore + currentHealth) > maxHealth)
+        {
+            currentHealth = maxHealth;
+        }
+        else
+        {
+            currentHealth += healthToRestore;
+        }
+    }
+
     private void OnTriggerEnter2D(Collider2D collider)
     {
         Damage damage = collider.gameObject.GetComponent<Damage>();
 
-        if(damage)
+        if (damage)
         {
-            currentHealth -= damage.GetDamaged();
+            if (!invinsiblePowerUp)
+            {
+                shootingPowerUp = false;
+                background.transform.Find("ShootingPowerUpIcon").GetComponent<SpriteRenderer>().enabled = false;
 
-            PlayAnimation(gotHitPrefab, gotHitAudio, gotHitVolume, 0.2f);
+                currentHealth -= damage.GetDamaged();
+
+                PlayAnimation(gotHitPrefab, gotHitAudio, gotHitVolume, 0.2f);
+            }
 
             if (!damage.DamageIsFromProjectile())
             {
@@ -121,7 +199,7 @@ public class Player : MonoBehaviour
             }
             damage.DestroyDamageDealer();
         }
-        
+
         if (currentHealth <= 0)
         {
             Die();

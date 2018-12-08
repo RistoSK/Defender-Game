@@ -13,6 +13,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemy: {fileID: 1232743260641508, guid: 4c769d97b49f0c241be6a8c8aa738a74, type: 2}
   path: {fileID: 1467220448489118, guid: 5f384bd457ae1cd42a416abd805a9b21, type: 2}
-  currentEnemyAmount: 6
-  currentEnemySpeed: 2.2
+  currentEnemyAmount: 5
+  currentEnemySpeed: 2
   spawnDelay: 0.5
+  enemyAmountIncremention: 1
+  enemySpeedIncremention: 0.2
